@@ -1,0 +1,30 @@
+version: '3.8'
+services:
+  zookeeper:
+    image: wurstmeister/zookeeper
+    container_name: zookeeper
+    networks:
+      - kafka_network
+    ports:
+      - "2181:2181"
+  kafka:
+    image: wurstmeister/kafka
+    container_name: kafka
+    networks:
+      - kafka_network
+    ports:
+      - "9092:9092"
+    expose:
+      - "9093"
+    environment:
+      KAFKA_LISTENERS: DOCKER_NET://0.0.0.0:9093,HOST_NET://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: DOCKER_NET://kafka:9093,HOST_NET://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: DOCKER_NET:PLAINTEXT,HOST_NET:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: DOCKER_NET
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      # Create Kafka topics "NAME:PARTITION:REPLICAS,..."
+      KAFKA_CREATE_TOPICS: "topic-container:1:1,topic-macos:1:1"
+networks:
+  kafka_network:
+    name: kafka
+    driver: bridge
